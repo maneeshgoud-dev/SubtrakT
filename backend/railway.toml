@@ -8,3 +8,7 @@
   healthcheckTimeout = 300
   restartPolicyType = "ON_FAILURE"
   restartPolicyMaxRetries = 10
+
+# Tell Nixpacks to use Node 22 (LTS) — mongodb@7+ requires Node >=20
+[variables]
+  NIXPACKS_NODE_VERSION = "22"
