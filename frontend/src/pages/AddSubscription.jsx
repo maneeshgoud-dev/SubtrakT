@@ -1,0 +1,66 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import SubscriptionForm, { defaultForm } from "../components/SubscriptionForm";
+import Toast from "../components/Toast";
+import { createSubscription } from "../api/subscriptions";
+
+export default function AddSubscription() {
+  const navigate = useNavigate();
+  const [form, setForm] = useState(defaultForm);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await createSubscription(form);
+      setSuccess(true);
+      setTimeout(() => navigate("/dashboard"), 1200);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to create subscription.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      {success && <Toast message="Subscription added!" />}
+      <main className="max-w-lg mx-auto px-4 py-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-sm text-gray-400 hover:text-gray-700 mb-4 inline-block"
+        >
+          ← Back
+        </button>
+        <h2 className="text-xl font-bold text-gray-900 mb-6">
+          Add subscription
+        </h2>
+
+        {error && (
+          <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+            {error}
+          </div>
+        )}
+
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+          <SubscriptionForm
+            form={form}
+            onChange={handleChange}
+            onSubmit={handleSubmit}
+            loading={loading}
+            submitLabel="Add subscription"
+          />
+        </div>
+      </main>
+    </div>
+  );
+}
