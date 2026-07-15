@@ -20,7 +20,7 @@ export default function Navbar() {
   return (
     <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
       <Link to="/dashboard" className="text-lg font-bold text-indigo-600">
-        SubTracker
+        SubTrackt
       </Link>
       <div className="flex items-center gap-4">
         <span className="text-sm text-gray-500">Hi, {user?.name}</span>

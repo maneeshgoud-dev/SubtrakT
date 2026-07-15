@@ -146,6 +146,71 @@ export default function Dashboard() {
             ))}
           </div>
         )}
+
+        {/* How does it work */}
+        <div className="mt-16 mb-4">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-6">
+            How does it work?
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+            {/* Step 1 */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center mb-4">
+                <span className="text-indigo-600 font-bold text-lg">1</span>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-2">Add your subscriptions</h4>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Click <strong>+ Add</strong> and enter your subscription details — name, price,
+                billing frequency (daily, weekly, monthly or yearly) and start date.
+                The renewal date is calculated automatically.
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+              <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center mb-4">
+                <span className="text-amber-500 font-bold text-lg">2</span>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-2">We track renewals for you</h4>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                SubTrackt monitors every active subscription and automatically advances
+                the renewal date each billing cycle — so your dashboard always shows
+                accurate, up-to-date information.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+              <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center mb-4">
+                <span className="text-green-600 font-bold text-lg">3</span>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-2">Get reminder emails</h4>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Reminder emails are sent automatically before each renewal:
+              </p>
+              <ul className="mt-2 space-y-1">
+                <li className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="w-2 h-2 rounded-full bg-indigo-400 inline-block"></span>
+                  <span><strong>Monthly / Yearly</strong> — 7, 3 and 1 day before</span>
+                </li>
+                <li className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+                  <span><strong>Weekly</strong> — 3 and 1 day before</span>
+                </li>
+                <li className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
+                  <span><strong>Daily</strong> — 1 day before</span>
+                </li>
+              </ul>
+              <p className="text-xs text-gray-400 mt-3">
+                Each email includes the subscription name, renewal date and amount due.
+              </p>
+            </div>
+
+          </div>
+        </div>
+
       </main>
     </div>
   );
