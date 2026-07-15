@@ -20,7 +20,9 @@ export default function AddSubscription() {
     setError("");
     setLoading(true);
     try {
-      await createSubscription(form);
+      const payload = { ...form };
+      if (!payload.renewalDate) delete payload.renewalDate;
+      await createSubscription(payload);
       setSuccess(true);
       setTimeout(() => navigate("/dashboard"), 1200);
     } catch (err) {

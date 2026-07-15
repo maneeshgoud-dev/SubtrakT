@@ -50,7 +50,9 @@ export default function EditSubscription() {
     setError("");
     setLoading(true);
     try {
-      await updateSubscription(id, form);
+      const payload = { ...form };
+      if (!payload.renewalDate) delete payload.renewalDate;
+      await updateSubscription(id, payload);
       setSuccess(true);
       setTimeout(() => navigate(`/subscriptions/${id}`), 1200);
     } catch (err) {

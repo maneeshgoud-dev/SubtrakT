@@ -84,19 +84,23 @@ const subscriptionSchema = mongoose.Schema(
   { timestamps: true },
 );
 
+// Returns the next renewal date advanced by one billing period (calendar-accurate)
+const advanceByFrequency = (date, frequency) => {
+  const next = new Date(date);
+  switch (frequency) {
+    case "daily":   next.setDate(next.getDate() + 1); break;
+    case "weekly":  next.setDate(next.getDate() + 7); break;
+    case "monthly": next.setMonth(next.getMonth() + 1); break;
+    case "yearly":  next.setFullYear(next.getFullYear() + 1); break;
+  }
+  return next;
+};
+
 // Auto-calculation of renewal date if not provided
 subscriptionSchema.pre("save", function () {
   if (!this.renewalDate) {
-    const renewalPeriods = {
-      daily: 1,
-      weekly: 7,
-      monthly: 30,
-      yearly: 365,
-    };
-    this.renewalDate = new Date(this.startDate);
-    this.renewalDate.setDate(
-      this.renewalDate.getDate() + renewalPeriods[this.frequency],
-    );
+    // BUG 2 FIX: use calendar-accurate arithmetic instead of flat day offsets
+    this.renewalDate = advanceByFrequency(this.startDate, this.frequency);
   }
 
   // Only clear sent reminders when renewalDate is explicitly changed on an
@@ -110,6 +114,8 @@ subscriptionSchema.pre("save", function () {
     this.status = "expired";
   }
 });
+
+export { advanceByFrequency };
 
 const Subscriptions = mongoose.model("Subscriptions", subscriptionSchema);
 

@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import { PORT, CLIENT_ORIGIN } from "./config/env.js";
 import connectToDatabase from "./database/mongodb.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
-import { startReminderCron } from "./cron/reminder.cron.js";
+import { startReminderCron, sendDueReminders } from "./cron/reminder.cron.js";
 import authRouter from "./routes/auth.routes.js";
 import subscriptionRouter from "./routes/subscription.routes.js";
 
@@ -39,6 +39,18 @@ app.use("/api/v1/subscriptions", subscriptionRouter);
 app.get("/", (req, res) => {
   res.send("Welcome to the Subscription Tracker API");
 });
+
+// ⚠️  Dev-only: manually fire the reminder cron for testing
+if (process.env.NODE_ENV !== "production") {
+  app.post("/api/v1/test/send-reminders", async (req, res) => {
+    try {
+      await sendDueReminders();
+      res.json({ success: true, message: "Reminder emails triggered successfully" });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+}
 
 app.use(errorMiddleware);
 

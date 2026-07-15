@@ -1,6 +1,9 @@
 import { config } from "dotenv";
 
-config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
+// Load local env file in development; in production env vars come from the platform directly
+if (process.env.NODE_ENV !== "production") {
+  config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
+}
 
 export const {
   PORT,
@@ -13,11 +16,7 @@ export const {
   CLIENT_ORIGIN,
 } = process.env;
 
-const requiredEnvVars = {
-  DB_URI,
-  JWT_SECRET,
-  JWT_EXPIRES_IN,
-};
+const requiredEnvVars = { DB_URI, JWT_SECRET, JWT_EXPIRES_IN };
 
 Object.entries(requiredEnvVars).forEach(([key, value]) => {
   if (!value) {
