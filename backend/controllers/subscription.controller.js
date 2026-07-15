@@ -1,4 +1,5 @@
 import Subscriptions from "../models/subscription.model.js";
+import { advanceToFuture } from "../models/subscription.model.js";
 
 const subscriptionFields = [
   "name",
@@ -54,6 +55,19 @@ export const createSubscription = async (req, res, next) => {
 
 export const getSubscriptions = async (req, res, next) => {
   try {
+    // Auto-advance any past-due active subscriptions immediately so the UI
+    // always shows correct future dates without waiting for the 9 AM cron.
+    const stale = await Subscriptions.find({
+      user: req.user._id,
+      status: "active",
+      renewalDate: { $lt: new Date() },
+    });
+
+    for (const sub of stale) {
+      sub.renewalDate = advanceToFuture(sub.renewalDate, sub.frequency);
+      await sub.save();
+    }
+
     const subscriptions = await Subscriptions.find({ user: req.user._id }).sort({
       renewalDate: 1,
     });
@@ -67,6 +81,12 @@ export const getSubscriptions = async (req, res, next) => {
 export const getSubscription = async (req, res, next) => {
   try {
     const subscription = await findOwnedSubscription(req.params.id, req.user.id);
+
+    // Auto-advance if past-due and still marked active
+    if (subscription.status === "active" && subscription.renewalDate < new Date()) {
+      subscription.renewalDate = advanceToFuture(subscription.renewalDate, subscription.frequency);
+      await subscription.save();
+    }
 
     res.status(200).json({ success: true, data: subscription });
   } catch (error) {

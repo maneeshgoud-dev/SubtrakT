@@ -19,9 +19,12 @@ export default function SubscriptionCard({ subscription, onDelete }) {
   const { _id, name, price, currency, frequency, category, status, renewalDate } =
     subscription;
 
-  const daysLeft = Math.ceil(
+  const daysLeft = Math.round(
     (new Date(renewalDate) - new Date()) / (1000 * 60 * 60 * 24)
   );
+
+  // Safety net: if backend hasn't auto-advanced yet, treat as overdue in the UI
+  const effectiveStatus = status === "active" && daysLeft < 0 ? "overdue" : status;
 
   const categoryColor =
     CATEGORY_COLORS[category?.toLowerCase()] || CATEGORY_COLORS.others;
@@ -38,9 +41,13 @@ export default function SubscriptionCard({ subscription, onDelete }) {
           </span>
         </div>
         <span
-          className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${STATUS_STYLES[status] || STATUS_STYLES.other}`}
+          className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${
+            effectiveStatus === "overdue"
+              ? "bg-orange-100 text-orange-600"
+              : STATUS_STYLES[effectiveStatus] || STATUS_STYLES.active
+          }`}
         >
-          {status}
+          {effectiveStatus === "overdue" ? "overdue" : status}
         </span>
       </div>
 
@@ -53,11 +60,19 @@ export default function SubscriptionCard({ subscription, onDelete }) {
           <p className="text-xs text-gray-400 capitalize">{frequency}</p>
         </div>
 
-        {status === "active" && (
+        {(status === "active" || effectiveStatus === "overdue") && (
           <div className="text-right">
             <p className="text-xs text-gray-400">Renews</p>
-            <p className={`text-sm font-medium ${daysLeft <= 3 ? "text-red-500" : daysLeft <= 7 ? "text-amber-500" : "text-gray-700"}`}>
-              {daysLeft <= 0 ? "Today" : `in ${daysLeft}d`}
+            <p className={`text-sm font-medium ${
+              effectiveStatus === "overdue"
+                ? "text-orange-500"
+                : daysLeft <= 3
+                ? "text-red-500"
+                : daysLeft <= 7
+                ? "text-amber-500"
+                : "text-gray-700"
+            }`}>
+              {effectiveStatus === "overdue" ? "Overdue" : daysLeft <= 0 ? "Today" : `in ${daysLeft}d`}
             </p>
           </div>
         )}

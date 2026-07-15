@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import Subscriptions from "../models/subscription.model.js";
-import { advanceByFrequency } from "../models/subscription.model.js";
+import { advanceToFuture } from "../models/subscription.model.js";
 import { sendReminderEmail } from "../utils/send-email.js";
 
 const REMINDER_DAYS_BY_FREQUENCY = {
@@ -59,7 +59,7 @@ export const sendDueReminders = async () => {
   for (const subscription of subscriptions) {
     if (getDaysLeft(subscription.renewalDate) < 0) {
       try {
-        subscription.renewalDate = advanceByFrequency(
+        subscription.renewalDate = advanceToFuture(
           subscription.renewalDate,
           subscription.frequency,
         );

@@ -96,6 +96,18 @@ const advanceByFrequency = (date, frequency) => {
   return next;
 };
 
+// Keeps advancing until the date is in the future (handles multi-cycle gaps)
+const advanceToFuture = (date, frequency) => {
+  let next = new Date(date);
+  const today = new Date();
+  while (next <= today) {
+    next = advanceByFrequency(next, frequency);
+  }
+  return next;
+};
+
+export { advanceByFrequency, advanceToFuture };
+
 // Auto-calculation of renewal date if not provided
 subscriptionSchema.pre("save", function () {
   if (!this.renewalDate) {
@@ -115,7 +127,7 @@ subscriptionSchema.pre("save", function () {
   }
 });
 
-export { advanceByFrequency };
+
 
 const Subscriptions = mongoose.model("Subscriptions", subscriptionSchema);
 
