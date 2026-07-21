@@ -63,32 +63,33 @@ export default function EditSubscription() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Navbar />
       {success && <Toast message="Changes saved!" />}
       <main className="max-w-lg mx-auto px-4 py-8">
         <button
           onClick={() => navigate(-1)}
-          className="text-sm text-gray-400 hover:text-gray-700 mb-4 inline-block"
+          className="text-sm text-slate-400 hover:text-white mb-5 inline-flex items-center gap-1 transition-colors"
         >
           ← Back
         </button>
-        <h2 className="text-xl font-bold text-gray-900 mb-6">
+        <h2 className="text-2xl font-bold text-white mb-1">
           Edit subscription
         </h2>
+        <p className="text-slate-400 text-sm mb-6">Update the details below</p>
 
         {error && (
-          <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+          <div className="mb-5 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
             {error}
           </div>
         )}
 
         {fetching && (
-          <p className="text-sm text-gray-400 text-center py-12">Loading…</p>
+          <p className="text-sm text-slate-500 text-center py-12">Loading…</p>
         )}
 
         {!fetching && form && (
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+          <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-2xl shadow-black/30 p-6">
             <SubscriptionForm
               form={form}
               onChange={handleChange}

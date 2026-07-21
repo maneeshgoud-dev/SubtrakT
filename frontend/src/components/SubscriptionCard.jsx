@@ -26,8 +26,21 @@ export default function SubscriptionCard({ subscription, onDelete }) {
   // Safety net: if backend hasn't auto-advanced yet, treat as overdue in the UI
   const effectiveStatus = status === "active" && daysLeft < 0 ? "overdue" : status;
 
+  // Convert daysLeft into a frequency-aware label and value
+  const getRenewalLabel = () => {
+    if (effectiveStatus === "overdue") return { prefix: "Ends",      value: "Overdue" };
+    if (daysLeft <= 0)                 return { prefix: "Ends",      value: "Today" };
+    if (frequency === "daily")         return { prefix: "Resets in", value: `${daysLeft}d` };
+    if (frequency === "weekly")        return { prefix: "Renews in", value: daysLeft < 7   ? `${daysLeft}d` : `${Math.round(daysLeft / 7)}w` };
+    if (frequency === "monthly")       return { prefix: "Renews in", value: daysLeft < 30  ? `${daysLeft}d` : `${Math.round(daysLeft / 30)}mo` };
+    if (frequency === "yearly")        return { prefix: "Renews in", value: daysLeft < 30  ? `${daysLeft}d` : daysLeft < 365 ? `${Math.round(daysLeft / 30)}mo` : `${Math.round(daysLeft / 365)}yr` };
+    return { prefix: "Renews in", value: `${daysLeft}d` };
+  };
+  const renewal = getRenewalLabel();
+
   const categoryColor =
     CATEGORY_COLORS[category?.toLowerCase()] || CATEGORY_COLORS.others;
+
 
   return (
     <div className="bg-slate-800/50 backdrop-blur border border-slate-700/40 rounded-2xl p-5 flex flex-col gap-3 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-200">
@@ -60,7 +73,7 @@ export default function SubscriptionCard({ subscription, onDelete }) {
 
         {(status === "active" || effectiveStatus === "overdue") && (
           <div className="text-right">
-            <p className="text-xs text-slate-500">Renews</p>
+            <p className="text-xs text-slate-500">{renewal.prefix}</p>
             <p className={`text-sm font-semibold ${
               effectiveStatus === "overdue"
                 ? "text-orange-400"
@@ -70,7 +83,7 @@ export default function SubscriptionCard({ subscription, onDelete }) {
                 ? "text-amber-400"
                 : "text-slate-200"
             }`}>
-              {effectiveStatus === "overdue" ? "Overdue" : daysLeft <= 0 ? "Today" : `in ${daysLeft}d`}
+              {renewal.value}
             </p>
           </div>
         )}
