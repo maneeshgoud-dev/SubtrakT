@@ -1,29 +1,177 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
-*, *::before, *::after {
-  font-family: 'Inter', sans-serif;
+*,
+*::before,
+*::after {
+  font-family: "Inter", sans-serif;
 }
+
+/* =========================================
+   LIQUID BACKGROUND
+   ========================================= */
 
 body {
   background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-  background-size: 300% 300%;
-  background-attachment: fixed;
-  animation: live-gradient 18s ease-in-out infinite;
+
   min-height: 100vh;
   color: #f1f5f9;
+
+  position: relative;
+  overflow-x: hidden;
 }
 
-@keyframes live-gradient {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+/* =========================================
+   ANIMATED LIQUID LAYERS
+   ========================================= */
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  pointer-events: none;
+  z-index: -1;
 }
+
+/* Main purple liquid */
+
+body::before {
+  background:
+    radial-gradient(
+      ellipse at 20% 20%,
+      rgba(124, 58, 237, 0.45) 0%,
+      transparent 35%
+    ),
+    radial-gradient(
+      ellipse at 80% 30%,
+      rgba(37, 99, 235, 0.35) 0%,
+      transparent 35%
+    ),
+    radial-gradient(
+      ellipse at 60% 80%,
+      rgba(147, 51, 234, 0.4) 0%,
+      transparent 35%
+    );
+
+  filter: blur(70px);
+
+  animation: liquidFlow 18s ease-in-out infinite alternate;
+}
+
+/* Secondary liquid glow */
+
+body::after {
+  background:
+    radial-gradient(
+      ellipse at 70% 70%,
+      rgba(99, 102, 241, 0.35) 0%,
+      transparent 30%
+    ),
+    radial-gradient(
+      ellipse at 30% 60%,
+      rgba(192, 132, 252, 0.25) 0%,
+      transparent 30%
+    );
+
+  filter: blur(90px);
+
+  animation: liquidFlowReverse 22s ease-in-out infinite alternate;
+}
+
+/* =========================================
+   LIQUID MOVEMENT
+   ========================================= */
+
+@keyframes liquidFlow {
+  0% {
+    transform: translate3d(-5%, -5%, 0) scale(1);
+  }
+
+  25% {
+    transform: translate3d(5%, -2%, 0) scale(1.05);
+  }
+
+  50% {
+    transform: translate3d(-2%, 5%, 0) scale(1.1);
+  }
+
+  75% {
+    transform: translate3d(6%, 3%, 0) scale(1.05);
+  }
+
+  100% {
+    transform: translate3d(-3%, -4%, 0) scale(1);
+  }
+}
+
+@keyframes liquidFlowReverse {
+  0% {
+    transform: translate3d(5%, 5%, 0) scale(1.1);
+  }
+
+  50% {
+    transform: translate3d(-5%, -3%, 0) scale(1);
+  }
+
+  100% {
+    transform: translate3d(3%, 6%, 0) scale(1.15);
+  }
+}
+
+/* =========================================
+   SUBTLE LIQUID SHIMMER
+   ========================================= */
+
+body {
+  background-size: 200% 200%;
+
+  animation: backgroundShift 20s ease infinite;
+}
+
+@keyframes backgroundShift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* =========================================
+   SCROLLBAR
+   ========================================= */
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1b4b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #818cf8;
+}
+
+/* =========================================
+   REDUCED MOTION
+   ========================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  body { animation: none; }
+  body,
+  body::before,
+  body::after {
+    animation: none;
+  }
 }
-
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: #1e1b4b; }
-::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #818cf8; }
