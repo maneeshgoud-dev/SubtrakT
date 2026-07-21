@@ -16,10 +16,19 @@ export const {
   CLIENT_ORIGIN,
 } = process.env;
 
-const requiredEnvVars = { DB_URI, JWT_SECRET, JWT_EXPIRES_IN, RESEND_API_KEY, EMAIL_SENDER };
+// Hard-required — server cannot function without these
+const requiredEnvVars = { DB_URI, JWT_SECRET, JWT_EXPIRES_IN };
 
 Object.entries(requiredEnvVars).forEach(([key, value]) => {
   if (!value) {
     throw new Error(`Missing required environment variable: ${key}`);
+  }
+});
+
+// Soft-required — warn but don't crash (emails will silently fail without these)
+const warnEnvVars = { RESEND_API_KEY, EMAIL_SENDER };
+Object.entries(warnEnvVars).forEach(([key, value]) => {
+  if (!value) {
+    console.warn(`[env] WARNING: ${key} is not set — reminder emails will not work.`);
   }
 });
