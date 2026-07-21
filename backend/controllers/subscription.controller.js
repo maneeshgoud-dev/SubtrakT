@@ -26,13 +26,13 @@ const findOwnedSubscription = async (subscriptionId, userId) => {
   const subscription = await Subscriptions.findById(subscriptionId);
 
   if (!subscription) {
-    const error = new Error("Subscription not found");
+    const error = new Error("Subscription not found. It may have already been deleted.");
     error.statusCode = 404;
     throw error;
   }
 
   if (subscription.user.toString() !== userId) {
-    const error = new Error("You are not authorized to access this subscription");
+    const error = new Error("You do not have permission to access this subscription.");
     error.statusCode = 403;
     throw error;
   }
@@ -42,6 +42,21 @@ const findOwnedSubscription = async (subscriptionId, userId) => {
 
 export const createSubscription = async (req, res, next) => {
   try {
+    const { name, price, frequency, category, paymentMethod, startDate } = req.body;
+    const missing = [];
+    if (!name) missing.push("name");
+    if (price === undefined || price === "") missing.push("price");
+    if (!frequency) missing.push("frequency");
+    if (!category) missing.push("category");
+    if (!paymentMethod) missing.push("payment method");
+    if (!startDate) missing.push("start date");
+
+    if (missing.length > 0) {
+      const error = new Error(`Please fill in the following required fields: ${missing.join(", ")}.`);
+      error.statusCode = 400;
+      throw error;
+    }
+
     const subscription = await Subscriptions.create({
       ...req.body,
       user: req.user._id,

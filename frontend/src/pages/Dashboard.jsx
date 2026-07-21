@@ -33,8 +33,8 @@ export default function Dashboard() {
       ]);
       setSubscriptions(subRes.data.data);
       setUpcoming(upcomingRes.data.data);
-    } catch {
-      setError("Failed to load subscriptions.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not load your subscriptions. Please refresh the page to try again.");
     } finally {
       setLoading(false);
     }
@@ -50,8 +50,8 @@ export default function Dashboard() {
       await deleteSubscription(id);
       setSubscriptions((prev) => prev.filter((s) => s._id !== id));
       setUpcoming((prev) => prev.filter((s) => s._id !== id));
-    } catch {
-      alert("Failed to delete subscription.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not delete the subscription. Please try again.");
     }
   };
 

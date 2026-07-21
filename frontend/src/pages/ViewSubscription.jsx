@@ -37,8 +37,8 @@ export default function ViewSubscription() {
       try {
         const { data } = await getSubscription(id);
         setSub(data.data);
-      } catch {
-        setError("Subscription not found.");
+      } catch (err) {
+        setError(err.response?.data?.message || "Could not load this subscription. It may have been deleted or you may not have access to it.");
       } finally {
         setLoading(false);
       }
@@ -51,8 +51,8 @@ export default function ViewSubscription() {
     try {
       await deleteSubscription(id);
       navigate("/dashboard");
-    } catch {
-      alert("Failed to delete.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not delete this subscription. Please try again.");
     }
   };
 
@@ -62,8 +62,8 @@ export default function ViewSubscription() {
       const { data } = await cancelSubscription(id);
       setSub(data.data);
       setToast("Subscription cancelled.");
-    } catch {
-      alert("Failed to cancel.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not cancel this subscription. Please try again.");
     }
   };
 

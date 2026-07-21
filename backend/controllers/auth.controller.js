@@ -16,10 +16,16 @@ export const signUp = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    if (!name || !email || !password) {
+      const error = new Error("Name, email and password are all required to create an account.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
 
     if (existingUser) {
-      const error = new Error("User already exists");
+      const error = new Error(`An account with the email "${email}" already exists. Try signing in instead.`);
       error.statusCode = 409;
       throw error;
     }
@@ -55,7 +61,7 @@ export const signIn = async (req, res, next) => {
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
-      const error = new Error("User not found");
+      const error = new Error(`No account found with the email "${email}". Check the email address or create a new account.`);
       error.statusCode = 404;
       throw error;
     }
@@ -63,7 +69,7 @@ export const signIn = async (req, res, next) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      const error = new Error("Password Incorrect");
+      const error = new Error("Incorrect password. Please try again.");
       error.statusCode = 401;
       throw error;
     }

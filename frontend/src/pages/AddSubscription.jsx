@@ -26,7 +26,7 @@ export default function AddSubscription() {
       setSuccess(true);
       setTimeout(() => navigate("/dashboard"), 1200);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create subscription.");
+      setError(err.response?.data?.message || "Could not save the subscription. Please check all fields and try again.");
     } finally {
       setLoading(false);
     }

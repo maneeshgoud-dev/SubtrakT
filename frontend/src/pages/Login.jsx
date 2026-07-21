@@ -23,7 +23,7 @@ export default function Login() {
       login(data.data.token, data.data.user);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || "Invalid email or password.");
+      setError(err.response?.data?.message || "Could not sign you in. Please check your email and password.");
     } finally {
       setLoading(false);
     }

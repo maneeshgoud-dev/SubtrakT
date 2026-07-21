@@ -23,7 +23,7 @@ export default function Register() {
       login(data.data.token, data.data.user);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || "Registration failed. Please try again.");
+      setError(err.response?.data?.message || "Could not create your account. Please check your details and try again.");
     } finally {
       setLoading(false);
     }

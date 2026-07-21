@@ -4,15 +4,15 @@ const subscriptionSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Subscription name is required"],
+      required: [true, "Please enter a name for this subscription."],
       trim: true,
-      minLength: 2,
-      maxLength: 100,
+      minLength: [2, "Subscription name must be at least 2 characters."],
+      maxLength: [100, "Subscription name cannot exceed 100 characters."],
     },
     price: {
       type: Number,
-      required: [true, "Price of the subscription should be mentioned"],
-      min: [0, "Price must be greater than 0"],
+      required: [true, "Please enter the subscription price."],
+      min: [0, "Price cannot be negative."],
     },
     currency: {
       type: String,
@@ -21,24 +21,20 @@ const subscriptionSchema = mongoose.Schema(
     },
     frequency: {
       type: String,
-      enum: ["daily", "monthly", "weekly", "yearly"],
-      required: true,
+      enum: { values: ["daily", "monthly", "weekly", "yearly"], message: "Billing frequency must be one of: daily, weekly, monthly, or yearly." },
+      required: [true, "Please select a billing frequency."],
     },
     category: {
       type: String,
-      enum: [
-        "sports",
-        "entertainment",
-        "technology",
-        "finance",
-        "lifestyle",
-        "others",
-      ],
-      required: true,
+      enum: {
+        values: ["sports", "entertainment", "technology", "finance", "lifestyle", "others"],
+        message: "Category must be one of: sports, entertainment, technology, finance, lifestyle, or others.",
+      },
+      required: [true, "Please select a category."],
     },
     paymentMethod: {
       type: String,
-      required: true,
+      required: [true, "Please enter a payment method (e.g. Credit Card, UPI)."],
       trim: true,
     },
     status: {
@@ -48,15 +44,14 @@ const subscriptionSchema = mongoose.Schema(
     },
     startDate: {
       type: Date,
-      required: true,
+      required: [true, "Please enter a start date."],
       validate: {
         validator: (value) => {
-          // Compare by end-of-day so "today" is always a valid start date
           const today = new Date();
           today.setHours(23, 59, 59, 999);
           return value <= today;
         },
-        message: "Start date must be in the past or today",
+        message: "Start date cannot be in the future. Please enter today's date or an earlier date.",
       },
     },
     renewalDate: {
@@ -65,7 +60,7 @@ const subscriptionSchema = mongoose.Schema(
         validator: function (value) {
           return value > this.startDate;
         },
-        message: "Renewal date must be after the start date",
+        message: "Renewal date must be after the start date.",
       },
     },
 

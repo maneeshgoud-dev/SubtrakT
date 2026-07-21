@@ -33,8 +33,8 @@ export default function EditSubscription() {
           startDate: toDateInput(s.startDate),
           renewalDate: toDateInput(s.renewalDate),
         });
-      } catch {
-        setError("Failed to load subscription.");
+      } catch (err) {
+        setError(err.response?.data?.message || "Could not load this subscription. It may have been deleted or you may not have access to it.");
       } finally {
         setFetching(false);
       }
@@ -56,7 +56,7 @@ export default function EditSubscription() {
       setSuccess(true);
       setTimeout(() => navigate(`/subscriptions/${id}`), 1200);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update subscription.");
+      setError(err.response?.data?.message || "Could not save your changes. Please check the fields and try again.");
     } finally {
       setLoading(false);
     }
