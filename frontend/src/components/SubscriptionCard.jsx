@@ -16,24 +16,59 @@ const CATEGORY_COLORS = {
 };
 
 export default function SubscriptionCard({ subscription, onDelete }) {
-  const { _id, name, price, currency, frequency, category, status, renewalDate } =
-    subscription;
+  const {
+    _id,
+    name,
+    price,
+    currency,
+    frequency,
+    category,
+    status,
+    renewalDate,
+  } = subscription;
 
   const daysLeft = Math.round(
-    (new Date(renewalDate) - new Date()) / (1000 * 60 * 60 * 24)
+    (new Date(renewalDate) - new Date()) / (1000 * 60 * 60 * 24),
   );
 
   // Safety net: if backend hasn't auto-advanced yet, treat as overdue in the UI
-  const effectiveStatus = status === "active" && daysLeft < 0 ? "overdue" : status;
+  const effectiveStatus =
+    status === "active" && daysLeft < 0 ? "overdue" : status;
 
   // Convert daysLeft into a frequency-aware label and value
   const getRenewalLabel = () => {
-    if (effectiveStatus === "overdue") return { prefix: "Ends",      value: "Overdue" };
-    if (daysLeft <= 0)                 return { prefix: "Ends",      value: "Today" };
-    if (frequency === "daily")         return { prefix: "Resets in", value: `${daysLeft}d` };
-    if (frequency === "weekly")        return { prefix: "Renews in", value: daysLeft < 7   ? `${daysLeft}d` : `${Math.round(daysLeft / 7)}w` };
-    if (frequency === "monthly")       return { prefix: "Renews in", value: daysLeft < 30  ? `${daysLeft}d` : `${Math.round(daysLeft / 30)}mo` };
-    if (frequency === "yearly")        return { prefix: "Renews in", value: daysLeft < 30  ? `${daysLeft}d` : daysLeft < 365 ? `${Math.round(daysLeft / 30)}mo` : `${Math.round(daysLeft / 365)}yr` };
+    if (effectiveStatus === "overdue")
+      return { prefix: "Ends", value: "Overdue" };
+
+    if (daysLeft <= 0) return { prefix: "Ends", value: "Today" };
+
+    if (frequency === "daily")
+      return { prefix: "Resets in", value: `${daysLeft}d` };
+
+    if (frequency === "weekly")
+      return {
+        prefix: "Renews in",
+        value: daysLeft < 7 ? `${daysLeft}d` : `${Math.round(daysLeft / 7)}w`,
+      };
+
+    if (frequency === "monthly")
+      return {
+        prefix: "Renews in",
+        value:
+          daysLeft < 30 ? `${daysLeft}d` : `${Math.round(daysLeft / 30)}mo`,
+      };
+
+    if (frequency === "yearly")
+      return {
+        prefix: "Renews in",
+        value:
+          daysLeft < 30
+            ? `${daysLeft}d`
+            : daysLeft < 365
+              ? `${Math.round(daysLeft / 30)}mo`
+              : `${Math.round(daysLeft / 365)}yr`,
+      };
+
     return { prefix: "Renews in", value: `${daysLeft}d` };
   };
   const renewal = getRenewalLabel();
@@ -41,13 +76,14 @@ export default function SubscriptionCard({ subscription, onDelete }) {
   const categoryColor =
     CATEGORY_COLORS[category?.toLowerCase()] || CATEGORY_COLORS.others;
 
-
   return (
     <div className="bg-slate-800/50 backdrop-blur border border-slate-700/40 rounded-2xl p-5 flex flex-col gap-3 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-200">
       <div className="flex items-start justify-between">
         <div>
           <h3 className="font-semibold text-white">{name}</h3>
-          <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-1 capitalize ${categoryColor}`}>
+          <span
+            className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-1 capitalize ${categoryColor}`}
+          >
             {category}
           </span>
         </div>
@@ -66,7 +102,9 @@ export default function SubscriptionCard({ subscription, onDelete }) {
         <div>
           <p className="text-2xl font-bold text-white">
             {price}{" "}
-            <span className="text-sm font-normal text-slate-400">{currency}</span>
+            <span className="text-sm font-normal text-slate-400">
+              {currency}
+            </span>
           </p>
           <p className="text-xs text-slate-500 capitalize">{frequency}</p>
         </div>
@@ -74,15 +112,17 @@ export default function SubscriptionCard({ subscription, onDelete }) {
         {(status === "active" || effectiveStatus === "overdue") && (
           <div className="text-right">
             <p className="text-xs text-slate-500">{renewal.prefix}</p>
-            <p className={`text-sm font-semibold ${
-              effectiveStatus === "overdue"
-                ? "text-orange-400"
-                : daysLeft <= 3
-                ? "text-red-400"
-                : daysLeft <= 7
-                ? "text-amber-400"
-                : "text-slate-200"
-            }`}>
+            <p
+              className={`text-sm font-semibold ${
+                effectiveStatus === "overdue"
+                  ? "text-orange-400"
+                  : daysLeft <= 3
+                    ? "text-red-400"
+                    : daysLeft <= 7
+                      ? "text-amber-400"
+                      : "text-slate-200"
+              }`}
+            >
               {renewal.value}
             </p>
           </div>
