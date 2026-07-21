@@ -16,7 +16,7 @@ export const {
   CLIENT_ORIGIN,
 } = process.env;
 
-const requiredEnvVars = { DB_URI, JWT_SECRET, JWT_EXPIRES_IN };
+const requiredEnvVars = { DB_URI, JWT_SECRET, JWT_EXPIRES_IN, RESEND_API_KEY, EMAIL_SENDER };
 
 Object.entries(requiredEnvVars).forEach(([key, value]) => {
   if (!value) {

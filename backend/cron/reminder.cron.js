@@ -20,6 +20,32 @@ const getDaysLeft = (renewalDate) => {
 };
 
 export const sendDueReminders = async () => {
+  // STEP 1: Advance any overdue renewalDates FIRST so the pre-save hook can
+  // reset remindersSent and re-set the status to "active" before we query.
+  // This prevents subscriptions from being stuck as "expired" and skipped.
+  const overdueSubscriptions = await Subscriptions.find({
+    status: { $in: ["active", "expired"] },
+    renewalDate: { $lt: new Date() },
+  });
+
+  for (const subscription of overdueSubscriptions) {
+    try {
+      subscription.renewalDate = advanceToFuture(
+        subscription.renewalDate,
+        subscription.frequency,
+      );
+      // Force status back to active after advancing the date
+      subscription.status = "active";
+      await subscription.save();
+    } catch (error) {
+      console.error(
+        `Failed to auto-advance renewal for subscription ${subscription._id}:`,
+        error.message,
+      );
+    }
+  }
+
+  // STEP 2: Now fetch all active subscriptions and send due reminders.
   const subscriptions = await Subscriptions.find({ status: "active" }).populate(
     "user",
     "name email",
@@ -45,6 +71,9 @@ export const sendDueReminders = async () => {
 
         subscription.remindersSent.push(daysLeft);
         await subscription.save();
+        console.log(
+          `Reminder sent to ${subscription.user.email} for "${subscription.name}" (${daysLeft} day(s) left)`,
+        );
       } catch (error) {
         console.error(
           `Failed to send reminder for subscription ${subscription._id}:`,
@@ -53,28 +82,10 @@ export const sendDueReminders = async () => {
       }
     }
   }
-  // BUG 1 FIX: auto-advance renewalDate for subscriptions that have passed their
-  // due date. The pre-save hook clears remindersSent automatically whenever
-  // renewalDate is modified, so the next cycle's emails will fire correctly.
-  for (const subscription of subscriptions) {
-    if (getDaysLeft(subscription.renewalDate) < 0) {
-      try {
-        subscription.renewalDate = advanceToFuture(
-          subscription.renewalDate,
-          subscription.frequency,
-        );
-        await subscription.save();
-      } catch (error) {
-        console.error(
-          `Failed to auto-advance renewal for subscription ${subscription._id}:`,
-          error.message,
-        );
-      }
-    }
-  }
 };
 
-// Runs once a day at 9:00 AM
+// Runs once a day at 9:00 AM IST (Asia/Kolkata)
 export const startReminderCron = () => {
-  cron.schedule("0 9 * * *", sendDueReminders);
+  cron.schedule("0 9 * * *", sendDueReminders, { timezone: "Asia/Kolkata" });
+  console.log("Reminder cron scheduled — fires daily at 09:00 IST");
 };
