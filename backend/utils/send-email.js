@@ -1,23 +1,39 @@
-import { Resend } from "resend";
-import { RESEND_API_KEY, EMAIL_SENDER } from "../config/env.js";
+import nodemailer from "nodemailer";
+import { GMAIL_USER, GMAIL_APP_PASSWORD, NODE_ENV } from "../config/env.js";
 import { reminderEmailTemplate } from "./email.template.js";
 
-const resend = new Resend(RESEND_API_KEY);
+// Gmail transporter using an App Password.
+// No domain verification needed — emails send from your Gmail account.
+// TLS strict mode is on in production (Render has proper certs).
+// On local dev (Windows), cert chain verification is relaxed to avoid the
+// "self-signed certificate" error caused by the machine's Node.js setup.
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // STARTTLS
+  auth: {
+    user: GMAIL_USER,
+    pass: GMAIL_APP_PASSWORD, // 16-char App Password (no spaces)
+  },
+  tls: {
+    rejectUnauthorized: NODE_ENV === "production",
+  },
+});
 
 export const sendReminderEmail = async ({ to, userName, subscription, daysLeft }) => {
   const html = reminderEmailTemplate({
     userName,
     subscriptionName: subscription.name,
-    renewalDate: subscription.renewalDate.toDateString(),
+    renewalDate: new Date(subscription.renewalDate).toDateString(),
     amount: subscription.price,
     currency: subscription.currency,
     daysLeft,
   });
 
-  await resend.emails.send({
-    from: EMAIL_SENDER,
+  await transporter.sendMail({
+    from: `"SubTrackt" <${GMAIL_USER}>`,
     to,
-    subject: `Reminder: ${subscription.name} renews in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
+    subject: `⏰ Reminder: ${subscription.name} renews in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
     html,
   });
 };

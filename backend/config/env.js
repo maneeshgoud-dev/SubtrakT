@@ -11,8 +11,8 @@ export const {
   DB_URI,
   JWT_SECRET,
   JWT_EXPIRES_IN,
-  RESEND_API_KEY,
-  EMAIL_SENDER,
+  GMAIL_USER,
+  GMAIL_APP_PASSWORD,
   CLIENT_ORIGIN,
   CRON_SECRET,
 } = process.env;
@@ -27,7 +27,7 @@ Object.entries(requiredEnvVars).forEach(([key, value]) => {
 });
 
 // Soft-required — warn but don't crash (emails will silently fail without these)
-const warnEnvVars = { RESEND_API_KEY, EMAIL_SENDER };
+const warnEnvVars = { GMAIL_USER, GMAIL_APP_PASSWORD };
 Object.entries(warnEnvVars).forEach(([key, value]) => {
   if (!value) {
     console.warn(`[env] WARNING: ${key} is not set — reminder emails will not work.`);
