@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { PORT, CLIENT_ORIGIN } from "./config/env.js";
+import { PORT, CLIENT_ORIGIN, CRON_SECRET, NODE_ENV } from "./config/env.js";
 import connectToDatabase from "./database/mongodb.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 import { startReminderCron, sendDueReminders } from "./cron/reminder.cron.js";
@@ -52,6 +52,21 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
+// Protected cron trigger — callable from cron-job.org or Render cron jobs.
+// Requires the X-Cron-Secret header to match the CRON_SECRET env var.
+app.post("/api/v1/cron/send-reminders", async (req, res) => {
+  const secret = req.headers["x-cron-secret"];
+  if (!CRON_SECRET || secret !== CRON_SECRET) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+  try {
+    await sendDueReminders();
+    res.json({ success: true, message: "Reminder emails triggered successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.use(errorMiddleware);
 
 // Connect to DB first, then start the server
@@ -60,6 +75,21 @@ const start = async () => {
   app.listen(PORT, () => {
     console.log(`Subscription Tracker API running on http://localhost:${PORT}`);
     startReminderCron();
+
+    // Keep the Render free-tier server alive by self-pinging every 14 minutes.
+    // Render spins down free services after 15 min of inactivity, which would
+    // kill the node-cron so the 9 AM reminder would never fire.
+    if (NODE_ENV === "production") {
+      const SELF_URL = `https://subtrakt.onrender.com/`;
+      setInterval(async () => {
+        try {
+          await fetch(SELF_URL);
+          console.log("[keep-alive] pinged self");
+        } catch (e) {
+          console.warn("[keep-alive] ping failed:", e.message);
+        }
+      }, 14 * 60 * 1000); // every 14 minutes
+    }
   });
 };
 

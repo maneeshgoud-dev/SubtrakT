@@ -14,6 +14,7 @@ export const {
   RESEND_API_KEY,
   EMAIL_SENDER,
   CLIENT_ORIGIN,
+  CRON_SECRET,
 } = process.env;
 
 // Hard-required — server cannot function without these
