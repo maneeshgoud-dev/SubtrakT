@@ -5,7 +5,7 @@ import { sendReminderEmail } from "../utils/send-email.js";
 
 const REMINDER_DAYS_BY_FREQUENCY = {
   monthly: [7, 3, 1],
-  yearly: [7, 3, 1],
+  yearly: [30, 7, 3, 1],
   weekly: [3, 1],
   daily: [1],
 };
@@ -84,8 +84,8 @@ export const sendDueReminders = async () => {
   }
 };
 
-// Runs once a day at 9:00 AM IST (Asia/Kolkata)
+// Runs once a day at 12:00 AM IST (midnight, Asia/Kolkata)
 export const startReminderCron = () => {
-  cron.schedule("0 9 * * *", sendDueReminders, { timezone: "Asia/Kolkata" });
-  console.log("Reminder cron scheduled — fires daily at 09:00 IST");
+  cron.schedule("0 0 * * *", sendDueReminders, { timezone: "Asia/Kolkata" });
+  console.log("Reminder cron scheduled — fires daily at 00:00 IST (midnight)");
 };
