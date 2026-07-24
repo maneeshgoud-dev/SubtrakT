@@ -10,7 +10,7 @@ const REMINDER_DAYS_BY_FREQUENCY = {
   daily: [1],
 };
 
-export const getDaysLeft = (renewalDate, timeZone = "Asia/Kolkata") => {
+const getDaysLeft = (renewalDate, timeZone = "Asia/Kolkata") => {
   if (!renewalDate) return null;
   const parsed = new Date(renewalDate);
   if (isNaN(parsed.getTime())) return null;
@@ -124,4 +124,3 @@ export const startReminderCron = () => {
   cron.schedule("0 0 * * *", sendDueReminders, { timezone: "Asia/Kolkata" });
   console.log("Reminder cron scheduled — fires daily at 00:00 IST (midnight)");
 };
-

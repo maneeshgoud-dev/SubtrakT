@@ -1,13 +1,12 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { PORT, CLIENT_ORIGIN, CRON_SECRET, NODE_ENV, GMAIL_USER, GMAIL_APP_PASSWORD } from "./config/env.js";
+import { PORT, CLIENT_ORIGIN, CRON_SECRET, NODE_ENV } from "./config/env.js";
 import connectToDatabase from "./database/mongodb.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
-import { startReminderCron, sendDueReminders, getDaysLeft } from "./cron/reminder.cron.js";
+import { startReminderCron, sendDueReminders } from "./cron/reminder.cron.js";
 import authRouter from "./routes/auth.routes.js";
 import subscriptionRouter from "./routes/subscription.routes.js";
-import Subscriptions from "./models/subscription.model.js";
 
 const app = express();
 
@@ -74,104 +73,6 @@ app.post("/api/v1/cron/send-reminders", async (req, res) => {
   });
 });
 
-// Sync test endpoint — actually sends emails and returns per-subscription result.
-// Use this to debug email delivery in production. Protected by CRON_SECRET.
-app.post("/api/v1/cron/test-send", async (req, res) => {
-  const secret = req.headers["x-cron-secret"];
-  if (!CRON_SECRET || secret !== CRON_SECRET) {
-    return res.status(401).json({ success: false, message: "Unauthorized" });
-  }
-
-  try {
-    await sendDueReminders();
-    res.json({ success: true, message: "sendDueReminders() completed — check server logs for details" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Debug endpoint — dry-run the reminder logic and return full diagnostic info.
-// Does NOT send any emails. Protected by the same CRON_SECRET.
-const REMINDER_DAYS_BY_FREQUENCY = {
-  monthly: [7, 3, 1],
-  yearly: [30, 7, 3, 1],
-  weekly: [3, 1],
-  daily: [1],
-};
-
-app.get("/api/v1/cron/debug-reminders", async (req, res) => {
-  const secret = req.headers["x-cron-secret"];
-  if (!CRON_SECRET || secret !== CRON_SECRET) {
-    return res.status(401).json({ success: false, message: "Unauthorized" });
-  }
-
-  try {
-    const subscriptions = await Subscriptions.find({ status: "active" }).populate("user", "name email");
-    const now = new Date();
-
-    const report = subscriptions.map((sub) => {
-      const daysLeft = getDaysLeft(sub.renewalDate);
-
-      if (daysLeft === null) {
-        return {
-          name: sub.name,
-          frequency: sub.frequency,
-          status: sub.status,
-          renewalDate: sub.renewalDate ?? "MISSING",
-          daysLeft: null,
-          wouldSendEmail: false,
-          skipReason: "renewalDate is missing or invalid in the database",
-          userEmail: sub.user?.email ?? "MISSING",
-        };
-      }
-
-      const reminderDays = REMINDER_DAYS_BY_FREQUENCY[sub.frequency] ?? [7, 3, 1];
-      const sortedThresholds = [...reminderDays].sort((a, b) => b - a);
-
-      let thresholdToTrigger = null;
-      for (const threshold of sortedThresholds) {
-        if (daysLeft <= threshold && !sub.remindersSent.includes(threshold)) {
-          thresholdToTrigger = threshold;
-          break;
-        }
-      }
-
-      const wouldSend = thresholdToTrigger !== null && daysLeft >= 0;
-
-      return {
-        name: sub.name,
-        frequency: sub.frequency,
-        status: sub.status,
-        renewalDate: sub.renewalDate,
-        daysLeft,
-        reminderThresholds: reminderDays,
-        remindersSent: sub.remindersSent,
-        thresholdToTrigger,
-        wouldSendEmail: wouldSend,
-        userEmail: sub.user?.email ?? "MISSING",
-        skipReason: !wouldSend
-          ? daysLeft < 0
-            ? "renewalDate is in the past"
-            : thresholdToTrigger === null
-            ? `no matching unsent threshold (daysLeft=${daysLeft})`
-            : "unknown"
-          : null,
-      };
-    });
-
-    res.json({
-      success: true,
-      serverTime: now.toISOString(),
-      gmailConfigured: !!(GMAIL_USER && GMAIL_APP_PASSWORD),
-      gmailUser: GMAIL_USER ?? "NOT SET",
-      totalActiveSubscriptions: subscriptions.length,
-      subscriptions: report,
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
 app.use(errorMiddleware);
 
 // Connect to DB first, then start the server
@@ -183,7 +84,7 @@ const start = async () => {
 
     // Keep the Render free-tier server alive by self-pinging every 14 minutes.
     // Render spins down free services after 15 min of inactivity, which would
-    // kill the node-cron so the 9 AM reminder would never fire.
+    // kill the node-cron so the midnight reminder would never fire.
     if (NODE_ENV === "production") {
       const SELF_URL = `https://subtrakt.onrender.com/`;
       setInterval(async () => {
