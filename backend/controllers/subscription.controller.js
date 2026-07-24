@@ -25,7 +25,7 @@ const getAllowedSubscriptionUpdates = (body) =>
 const findOwnedSubscription = async (subscriptionId, userId) => {
   const subscription = await Subscriptions.findById(subscriptionId);
 
-  if (!subscription) {
+  if (!subscription || !subscription.user) {
     const error = new Error("Subscription not found. It may have already been deleted.");
     error.statusCode = 404;
     throw error;
