@@ -74,6 +74,22 @@ app.post("/api/v1/cron/send-reminders", async (req, res) => {
   });
 });
 
+// Sync test endpoint — actually sends emails and returns per-subscription result.
+// Use this to debug email delivery in production. Protected by CRON_SECRET.
+app.post("/api/v1/cron/test-send", async (req, res) => {
+  const secret = req.headers["x-cron-secret"];
+  if (!CRON_SECRET || secret !== CRON_SECRET) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  try {
+    await sendDueReminders();
+    res.json({ success: true, message: "sendDueReminders() completed — check server logs for details" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Debug endpoint — dry-run the reminder logic and return full diagnostic info.
 // Does NOT send any emails. Protected by the same CRON_SECRET.
 const REMINDER_DAYS_BY_FREQUENCY = {
