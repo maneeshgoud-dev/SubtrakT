@@ -7,6 +7,7 @@ import {
   deleteSubscription,
   getSubscription,
 } from "../api/subscriptions";
+import { getDaysLeft } from "../utils/dateUtils";
 
 const STATUS_STYLES = {
   active: "bg-emerald-500/15 text-emerald-400",
@@ -67,9 +68,7 @@ export default function ViewSubscription() {
     }
   };
 
-  const daysLeft = sub
-    ? Math.ceil((new Date(sub.renewalDate) - new Date()) / (1000 * 60 * 60 * 24))
-    : null;
+  const daysLeft = sub ? getDaysLeft(sub.renewalDate) : null;
 
   return (
     <div className="min-h-screen">

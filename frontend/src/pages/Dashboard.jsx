@@ -6,6 +6,7 @@ import {
   getSubscriptions,
   getUpcomingRenewals,
 } from "../api/subscriptions";
+import { getDaysLeft } from "../utils/dateUtils";
 
 function StatCard({ label, value, sub }) {
   return (
@@ -97,10 +98,7 @@ export default function Dashboard() {
             </h3>
             <div className="flex flex-wrap gap-2">
               {upcoming.map((s) => {
-                const daysLeft = Math.ceil(
-                  (new Date(s.renewalDate) - new Date()) /
-                    (1000 * 60 * 60 * 24),
-                );
+                const daysLeft = getDaysLeft(s.renewalDate);
                 return (
                   <span
                     key={s._id}

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { getDaysLeft } from "../utils/dateUtils";
 
 const STATUS_STYLES = {
   active: "bg-emerald-500/15 text-emerald-400",
@@ -27,9 +28,7 @@ export default function SubscriptionCard({ subscription, onDelete }) {
     renewalDate,
   } = subscription;
 
-  const daysLeft = Math.round(
-    (new Date(renewalDate) - new Date()) / (1000 * 60 * 60 * 24),
-  );
+  const daysLeft = getDaysLeft(renewalDate);
 
   // Safety net: if backend hasn't auto-advanced yet, treat as overdue in the UI
   const effectiveStatus =
@@ -43,7 +42,7 @@ export default function SubscriptionCard({ subscription, onDelete }) {
     if (daysLeft <= 0) return { prefix: "Ends", value: "Today" };
 
     if (frequency === "daily")
-      return { prefix: "Resets in", value: `${daysLeft}d` };
+      return { prefix: "Renews in", value: `${daysLeft}d` };
 
     if (frequency === "weekly")
       return {
