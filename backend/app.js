@@ -59,12 +59,18 @@ app.post("/api/v1/cron/send-reminders", async (req, res) => {
   if (!CRON_SECRET || secret !== CRON_SECRET) {
     return res.status(401).json({ success: false, message: "Unauthorized" });
   }
-  try {
-    await sendDueReminders();
-    res.json({ success: true, message: "Reminder emails triggered successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+
+  // Respond immediately so external cron triggers (e.g. cron-job.org) don't timeout
+  // while nodemailer/SMTP sends emails in the background.
+  res.status(200).json({
+    success: true,
+    message: "Reminder job triggered successfully",
+  });
+
+  // Execute reminder processing asynchronously
+  sendDueReminders().catch((error) => {
+    console.error("Error executing sendDueReminders cron job:", error);
+  });
 });
 
 app.use(errorMiddleware);

@@ -10,16 +10,27 @@ const REMINDER_DAYS_BY_FREQUENCY = {
   daily: [1],
 };
 
-const getDaysLeft = (renewalDate) => {
-  const msPerDay = 1000 * 60 * 60 * 24;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const renewal = new Date(renewalDate);
-  renewal.setHours(0, 0, 0, 0);
-  return Math.round((renewal - today) / msPerDay);
+export const getDaysLeft = (renewalDate, timeZone = "Asia/Kolkata") => {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  const todayStr = formatter.format(now);
+  const renewalStr = formatter.format(new Date(renewalDate));
+
+  const todayMs = Date.parse(`${todayStr}T00:00:00Z`);
+  const renewalMs = Date.parse(`${renewalStr}T00:00:00Z`);
+
+  return Math.round((renewalMs - todayMs) / (1000 * 60 * 60 * 24));
 };
 
 export const sendDueReminders = async () => {
+  console.log(`[cron] Running sendDueReminders at ${new Date().toISOString()}...`);
+
   // STEP 1: Advance any overdue renewalDates FIRST so the pre-save hook can
   // reset remindersSent and re-set the status to "active" before we query.
   // This prevents subscriptions from being stuck as "expired" and skipped.
@@ -52,15 +63,29 @@ export const sendDueReminders = async () => {
   );
 
   for (const subscription of subscriptions) {
+    if (!subscription.user || !subscription.user.email) {
+      continue;
+    }
+
     const daysLeft = getDaysLeft(subscription.renewalDate);
 
     const reminderDays =
       REMINDER_DAYS_BY_FREQUENCY[subscription.frequency] ?? [7, 3, 1];
 
-    if (
-      reminderDays.includes(daysLeft) &&
-      !subscription.remindersSent.includes(daysLeft)
-    ) {
+    const sortedThresholds = [...reminderDays].sort((a, b) => b - a);
+
+    let thresholdToTrigger = null;
+    for (const threshold of sortedThresholds) {
+      if (
+        daysLeft <= threshold &&
+        !subscription.remindersSent.includes(threshold)
+      ) {
+        thresholdToTrigger = threshold;
+        break; // Trigger the highest unfulfilled threshold window
+      }
+    }
+
+    if (thresholdToTrigger !== null && daysLeft >= 0) {
       try {
         await sendReminderEmail({
           to: subscription.user.email,
@@ -69,10 +94,10 @@ export const sendDueReminders = async () => {
           daysLeft,
         });
 
-        subscription.remindersSent.push(daysLeft);
+        subscription.remindersSent.push(thresholdToTrigger);
         await subscription.save();
         console.log(
-          `Reminder sent to ${subscription.user.email} for "${subscription.name}" (${daysLeft} day(s) left)`,
+          `[cron] Reminder sent to ${subscription.user.email} for "${subscription.name}" (${daysLeft} day(s) left, threshold: ${thresholdToTrigger})`,
         );
       } catch (error) {
         console.error(
@@ -89,3 +114,4 @@ export const startReminderCron = () => {
   cron.schedule("0 0 * * *", sendDueReminders, { timezone: "Asia/Kolkata" });
   console.log("Reminder cron scheduled — fires daily at 00:00 IST (midnight)");
 };
+
