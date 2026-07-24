@@ -11,6 +11,7 @@ const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false, // STARTTLS
+  family: 4,     // Force IPv4 — Render's free tier doesn't support outbound IPv6
   auth: {
     user: GMAIL_USER,
     pass: GMAIL_APP_PASSWORD, // 16-char App Password (no spaces)
