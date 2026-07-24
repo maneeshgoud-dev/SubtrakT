@@ -34,7 +34,9 @@ export const sendReminderEmail = async ({ to, userName, subscription, daysLeft }
   await transporter.sendMail({
     from: `"SubTrackt" <${GMAIL_USER}>`,
     to,
-    subject: `⏰ Reminder: ${subscription.name} renews in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
+    subject: daysLeft === 0
+      ? `⏰ Reminder: ${subscription.name} renews today`
+      : `⏰ Reminder: ${subscription.name} renews in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
     html,
   });
 };

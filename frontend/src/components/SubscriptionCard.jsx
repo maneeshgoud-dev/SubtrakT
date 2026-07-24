@@ -32,14 +32,18 @@ export default function SubscriptionCard({ subscription, onDelete }) {
 
   // Safety net: if backend hasn't auto-advanced yet, treat as overdue in the UI
   const effectiveStatus =
-    status === "active" && daysLeft < 0 ? "overdue" : status;
+    status === "active" && daysLeft !== null && daysLeft < 0 ? "overdue" : status;
 
   // Convert daysLeft into a frequency-aware label and value
   const getRenewalLabel = () => {
+    if (daysLeft === null) return { prefix: "Renews", value: "—" };
+
     if (effectiveStatus === "overdue")
       return { prefix: "Ends", value: "Overdue" };
 
-    if (daysLeft <= 0) return { prefix: "Ends", value: "Today" };
+    if (daysLeft === 0) return { prefix: "Renews", value: "Today" };
+
+    if (daysLeft < 0) return { prefix: "Ends", value: "Overdue" };
 
     if (frequency === "daily")
       return { prefix: "Renews in", value: `${daysLeft}d` };
