@@ -95,6 +95,20 @@ app.get("/api/v1/cron/debug-reminders", async (req, res) => {
 
     const report = subscriptions.map((sub) => {
       const daysLeft = getDaysLeft(sub.renewalDate);
+
+      if (daysLeft === null) {
+        return {
+          name: sub.name,
+          frequency: sub.frequency,
+          status: sub.status,
+          renewalDate: sub.renewalDate ?? "MISSING",
+          daysLeft: null,
+          wouldSendEmail: false,
+          skipReason: "renewalDate is missing or invalid in the database",
+          userEmail: sub.user?.email ?? "MISSING",
+        };
+      }
+
       const reminderDays = REMINDER_DAYS_BY_FREQUENCY[sub.frequency] ?? [7, 3, 1];
       const sortedThresholds = [...reminderDays].sort((a, b) => b - a);
 

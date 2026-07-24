@@ -11,6 +11,10 @@ const REMINDER_DAYS_BY_FREQUENCY = {
 };
 
 export const getDaysLeft = (renewalDate, timeZone = "Asia/Kolkata") => {
+  if (!renewalDate) return null;
+  const parsed = new Date(renewalDate);
+  if (isNaN(parsed.getTime())) return null;
+
   const now = new Date();
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone,
@@ -20,7 +24,7 @@ export const getDaysLeft = (renewalDate, timeZone = "Asia/Kolkata") => {
   });
 
   const todayStr = formatter.format(now);
-  const renewalStr = formatter.format(new Date(renewalDate));
+  const renewalStr = formatter.format(parsed);
 
   const todayMs = Date.parse(`${todayStr}T00:00:00Z`);
   const renewalMs = Date.parse(`${renewalStr}T00:00:00Z`);
@@ -68,6 +72,12 @@ export const sendDueReminders = async () => {
     }
 
     const daysLeft = getDaysLeft(subscription.renewalDate);
+
+    // Skip subscriptions with missing/invalid renewal dates
+    if (daysLeft === null) {
+      console.warn(`[cron] Skipping "${subscription.name}" — invalid renewalDate: ${subscription.renewalDate}`);
+      continue;
+    }
 
     const reminderDays =
       REMINDER_DAYS_BY_FREQUENCY[subscription.frequency] ?? [7, 3, 1];
